@@ -4,13 +4,13 @@ namespace pvlg\introjs;
 
 use Yii;
 use yii\helpers\Json;
+use yii\base\InvalidConfigException;
 
 class Introjs extends \yii\base\Widget
 {
 
     public $configFile = '@app/config/introjs.php';
     public $config;
-    public $introConfig;
     public $cssFile;
 
     public function init()
@@ -26,37 +26,46 @@ class Introjs extends \yii\base\Widget
         }
 
         $this->config = require($this->configFile);
-
-        $view = $this->getView();
-        IntrojsAsset::register($view);
-        if ($this->cssFile) {
-            $view->registerCssFile($this->cssFile);
-        }
     }
 
     public function run()
     {
-        foreach ($this->config as $introName => $introConfig) {
+        $js = '';
+        $isStarted = false;
+        
+        foreach ($this->config['intros'] as $introName => $introConfig) {
             if (call_user_func($introConfig['condition'])) {
-                $this->introConfig = $introConfig;
-                break;
+                if (isset($this->config['introjsOptions'])) {
+                    $introjsOptions = array_merge($this->config['introjsOptions'], $introConfig['introjsOptions']);
+                } else {
+                    $introjsOptions = $introConfig['introjsOptions'];
+                }
+
+                $introjsOptions = Json::encode($introjsOptions, JSON_PRETTY_PRINT);
+
+                $js.= "window.intro['$introName'] = introJs();\n";
+                $js.= "window.intro['$introName'].setOptions($introjsOptions);\n";
+                if (!isset($introConfig['startOnLoad']) || $introConfig['startOnLoad']) {
+                    if ($isStarted) {
+                        throw new InvalidConfigException("Double start introJs: {$introName}");
+                    }
+                    $js.= "window.intro['$introName'].start();\n";
+                    $isStarted = true;
+                }
             }
         }
 
-        if (!$this->introConfig) {
-            return;
+        if ($js) {
+            $view = $this->getView();
+
+            IntrojsAsset::register($view);
+            if ($this->cssFile) {
+                $view->registerCssFile($this->cssFile);
+            }
+
+            $js = "window.intro = [];\n" . $js;
+
+            $view->registerJs($js);
         }
-
-        $introConfig = Json::encode($this->introConfig['introjsOptions'], JSON_PRETTY_PRINT);
-        $js = <<<EOD
-jQuery(function () {
-    window.intro = introJs();
-    window.intro.setOptions($introConfig);
-    window.intro.start();
-});
-EOD;
-
-        $view = $this->getView();
-        $view->registerJs($js);
     }
 }

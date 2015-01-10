@@ -1,4 +1,4 @@
-yii2-widget-introjs
+yii2-introjs-widget
 ===================
 
-pvlg/yii2-widget-introjs
+pvlg/yii2-introjs-widget

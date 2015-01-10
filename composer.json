@@ -1,12 +1,12 @@
 {
-	"name": "pvlg/yii2-widget-introjs",
+	"name": "pvlg/yii2-introjs-widget",
 	"keywords": ["yii2", "extension", "widget", "introjs", "introduction", "plugin"],
-	"homepage": "https://github.com/pvlg/yii2-widget-introjs",
+	"homepage": "https://github.com/pvlg/yii2-introjs-widget",
 	"type": "yii2-extension",
 	"license": "MIT",
 	"authors": [
 		{
-			"name": "Gurin Pavel"
+			"name": "Pavel Gurin"
 		}
 	],
 	"autoload": {
